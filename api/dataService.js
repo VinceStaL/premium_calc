@@ -1,8 +1,8 @@
 const fs = require('fs');
-const csv = require('csv-parser');
 const path = require('path');
+const XLSX = require('xlsx');
 
-// In-memory data store for CSV data
+// In-memory data store for XLSX data
 const dataStore = {
   ProductRateMaster: [],
   ProductRateDetail: [],
@@ -11,30 +11,37 @@ const dataStore = {
   RebatePercentage: []
 };
 
-// Load all CSV files into memory
+// Load all XLSX files into memory
 function loadData() {
   const tables = Object.keys(dataStore);
   
   tables.forEach(table => {
-    const filePath = path.join(__dirname, 'data', `${table}.csv`);
+    const filePath = path.join(__dirname, 'data', `${table}.xlsx`);
     
     if (fs.existsSync(filePath)) {
-      const rows = [];
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on('data', (row) => {
-          // Convert numeric strings to numbers
+      try {
+        // Read the XLSX file
+        const workbook = XLSX.readFile(filePath);
+        const sheetName = workbook.SheetNames[0]; // Get the first sheet
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Convert to JSON
+        const rows = XLSX.utils.sheet_to_json(worksheet);
+        
+        // Convert numeric strings to numbers
+        rows.forEach(row => {
           Object.keys(row).forEach(key => {
             if (!isNaN(row[key]) && row[key] !== '') {
               row[key] = parseFloat(row[key]);
             }
           });
-          rows.push(row);
-        })
-        .on('end', () => {
-          dataStore[table] = rows;
-          console.log(`Loaded ${rows.length} rows from ${table}.csv`);
         });
+        
+        dataStore[table] = rows;
+        console.log(`Loaded ${rows.length} rows from ${table}.xlsx`);
+      } catch (error) {
+        console.error(`Error loading ${table}.xlsx:`, error);
+      }
     } else {
       console.warn(`Warning: ${filePath} does not exist`);
     }

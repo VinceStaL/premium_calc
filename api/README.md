@@ -1,10 +1,10 @@
 # Premium Calculation API
 
-A simple API for calculating health insurance premiums based on various factors.
+A Node.js API for calculating health insurance premiums using XLSX files for data storage.
 
 ## Overview
 
-This API provides a premium calculation service that uses CSV files for data storage instead of a database. It's designed as a proof of concept that implements the same calculation logic as the original application.
+This API provides endpoints for calculating health insurance premiums based on various factors such as product type, state, scale code, payment frequency, and more. Instead of using a database, the application uses XLSX files to store rate tables and configuration data.
 
 ## Setup
 
@@ -13,27 +13,35 @@ This API provides a premium calculation service that uses CSV files for data sto
    npm install
    ```
 
-2. Generate sample data:
+2. Start the server:
    ```
-   # Start the server
-   node server.js
-   
-   # Then make a GET request to:
-   http://localhost:3000/api/generate-sample-data
+   npm start
    ```
 
-3. The API will be available at:
+   For development with auto-restart:
    ```
-   http://localhost:3000/api/calculate-premium
+   npm run dev
    ```
 
-## API Documentation
+## API Endpoints
 
-### Calculate Premium
+### 1. Generate Sample Data
 
-**Endpoint:** `POST /api/calculate-premium`
+```
+GET /api/generate-sample-data
+```
 
-**Request Body:**
+This endpoint generates sample XLSX files with test data for the premium calculation. The files are stored in the `data` directory.
+
+### 2. Calculate Premium
+
+```
+POST /api/calculate-premium
+```
+
+This endpoint calculates the premium based on the provided parameters.
+
+Example request body:
 ```json
 {
   "effectiveDate": "2023-06-01",
@@ -45,84 +53,22 @@ This API provides a premium calculation service that uses CSV files for data sto
   "rebateType": "TIER1",
   "lhcPercentage": 0,
   "useBaseRate": true,
-  "useRiskRating": false,
-  "sex1": "F",
-  "age1": 35,
-  "sex2": "M",
-  "age2": 40
+  "useRiskRating": false
 }
 ```
 
-**Response:**
-```json
-{
-  "results": [
-    {
-      "productCode": "BASIC",
-      "basePremium": 100.00,
-      "scaledBasePremium": 100.00,
-      "scaleAndFrequencyPremium": 100.00,
-      "finalPremium": 90.00,
-      "scaleFactor": 1.0,
-      "riskLoading1": null,
-      "riskLoading2": null,
-      "riskLoadingAmount1": null,
-      "riskLoadingAmount2": null,
-      "rebatePercentage": 10.00,
-      "rebateAmount": 10.00,
-      "premiumBeforeRebate": 100.00,
-      "lhcPercentage": 0,
-      "lhcAmount": 0.00
-    },
-    {
-      "productCode": "STANDARD",
-      "basePremium": 150.00,
-      "scaledBasePremium": 150.00,
-      "scaleAndFrequencyPremium": 150.00,
-      "finalPremium": 135.00,
-      "scaleFactor": 1.0,
-      "riskLoading1": null,
-      "riskLoading2": null,
-      "riskLoadingAmount1": null,
-      "riskLoadingAmount2": null,
-      "rebatePercentage": 10.00,
-      "rebateAmount": 15.00,
-      "premiumBeforeRebate": 150.00,
-      "lhcPercentage": 0,
-      "lhcAmount": 0.00
-    }
-  ],
-  "totalPremium": 225.00
-}
-```
+## Data Files
 
-## CSV File Structure
+The API uses the following XLSX files for data storage:
 
-The API uses the following CSV files stored in the `data` directory:
-
-1. **ProductRateMaster.csv**
-   - Contains base rates and product information
-   - Fields: ProductCode, StateCode, RateCode, BaseRate, LHCApplicable, RebateApplicable, DateOn, DateOff
-
-2. **ProductRateDetail.csv**
-   - Contains detailed rate information for different payment frequencies
-   - Fields: ProductCode, StateCode, ScaleCode, RateCode, WeeklyRate, MonthlyRate, QuarterlyRate, HalfYearlyRate, YearlyRate, DateOn, DateOff
-
-3. **ScaleFactors.csv**
-   - Contains scaling factors for different coverage types
-   - Fields: ProductCode, ScaleCode, ScaleFactor, DateOn, DateOff
-
-4. **RiskLoading.csv**
-   - Contains risk loading percentages based on age and gender
-   - Fields: ProductCode, Sex, Age, RiskLoading, DateOn, DateOff
-
-5. **RebatePercentage.csv**
-   - Contains rebate percentages for different types
-   - Fields: RebateType, Rebate, DateOn, DateOff
+1. **ProductRateMaster.xlsx**: Contains base rates and product information
+2. **ProductRateDetail.xlsx**: Contains detailed rates for different payment frequencies
+3. **ScaleFactors.xlsx**: Contains scaling factors for different coverage types
+4. **RiskLoading.xlsx**: Contains risk loading percentages based on age and gender
+5. **RebatePercentage.xlsx**: Contains rebate percentages for different types
 
 ## Implementation Details
 
-The API is built with:
-- Node.js and Express
-- CSV files for data storage
-- In-memory data querying
+- **dataService.js**: Handles loading XLSX data into memory and provides query functions
+- **premiumService.js**: Implements the premium calculation logic
+- **server.js**: Sets up the Express API endpoints

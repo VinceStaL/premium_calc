@@ -8,14 +8,14 @@ const premiumService = require('./premiumService');
 const app = express();
 app.use(express.json());
 
-// Load CSV data on startup
-dataService.loadData();
-
 // Create data directory if it doesn't exist
 const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir);
 }
+
+// Load XLSX data on startup
+dataService.loadData();
 
 // API endpoint for premium calculation
 app.post('/api/calculate-premium', async (req, res) => {
@@ -64,67 +64,68 @@ app.post('/api/calculate-premium', async (req, res) => {
 // Sample data generation endpoint
 app.get('/api/generate-sample-data', (req, res) => {
   try {
-    // Generate sample ProductRateMaster.csv
-    const productRateMaster = [
-      'ProductCode,StateCode,RateCode,BaseRate,LHCApplicable,RebateApplicable,DateOn,DateOff',
-      'BASIC,N,0,100.00,Y,Y,2023-01-01,2099-12-31',
-      'BASIC,V,0,95.00,Y,Y,2023-01-01,2099-12-31',
-      'STANDARD,N,0,150.00,Y,Y,2023-01-01,2099-12-31',
-      'STANDARD,V,0,145.00,Y,Y,2023-01-01,2099-12-31',
-      'PREMIUM,N,0,200.00,Y,Y,2023-01-01,2099-12-31',
-      'PREMIUM,V,0,195.00,Y,Y,2023-01-01,2099-12-31'
-    ].join('\\n');
+    const XLSX = require('xlsx');
     
-    // Generate sample ScaleFactors.csv
-    const scaleFactors = [
-      'ProductCode,ScaleCode,ScaleFactor,DateOn,DateOff',
-      'BASIC,S,1.0,2023-01-01,2099-12-31',
-      'BASIC,D,2.0,2023-01-01,2099-12-31',
-      'BASIC,F,2.5,2023-01-01,2099-12-31',
-      'STANDARD,S,1.0,2023-01-01,2099-12-31',
-      'STANDARD,D,2.0,2023-01-01,2099-12-31',
-      'STANDARD,F,2.5,2023-01-01,2099-12-31',
-      'PREMIUM,S,1.0,2023-01-01,2099-12-31',
-      'PREMIUM,D,2.0,2023-01-01,2099-12-31',
-      'PREMIUM,F,2.5,2023-01-01,2099-12-31'
-    ].join('\\n');
+    // Create sample data objects
+    const productRateMasterData = [
+      { ProductCode: 'BASIC', StateCode: 'N', RateCode: 0, BaseRate: 100.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BASIC', StateCode: 'V', RateCode: 0, BaseRate: 95.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', StateCode: 'N', RateCode: 0, BaseRate: 150.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', StateCode: 'V', RateCode: 0, BaseRate: 145.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', StateCode: 'N', RateCode: 0, BaseRate: 200.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', StateCode: 'V', RateCode: 0, BaseRate: 195.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' }
+    ];
     
-    // Generate sample RebatePercentage.csv
-    const rebatePercentage = [
-      'RebateType,Rebate,DateOn,DateOff',
-      'TIER1,10.0,2023-01-01,2099-12-31',
-      'TIER2,20.0,2023-01-01,2099-12-31',
-      'TIER3,30.0,2023-01-01,2099-12-31'
-    ].join('\\n');
+    const scaleFactorsData = [
+      { ProductCode: 'BASIC', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BASIC', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BASIC', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+    ];
     
-    // Generate sample RiskLoading.csv
-    const riskLoading = [
-      'ProductCode,Sex,Age,RiskLoading,DateOn,DateOff',
-      'BASIC,M,30,0.05,2023-01-01,2099-12-31',
-      'BASIC,F,30,0.03,2023-01-01,2099-12-31',
-      'STANDARD,M,30,0.05,2023-01-01,2099-12-31',
-      'STANDARD,F,30,0.03,2023-01-01,2099-12-31',
-      'PREMIUM,M,30,0.05,2023-01-01,2099-12-31',
-      'PREMIUM,F,30,0.03,2023-01-01,2099-12-31'
-    ].join('\\n');
+    const rebatePercentageData = [
+      { RebateType: 'TIER1', Rebate: 10.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { RebateType: 'TIER2', Rebate: 20.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { RebateType: 'TIER3', Rebate: 30.0, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+    ];
     
-    // Generate sample ProductRateDetail.csv
-    const productRateDetail = [
-      'ProductCode,StateCode,ScaleCode,RateCode,WeeklyRate,MonthlyRate,QuarterlyRate,HalfYearlyRate,YearlyRate,DateOn,DateOff',
-      'BASIC,N,S,0,25.00,100.00,300.00,600.00,1200.00,2023-01-01,2099-12-31',
-      'BASIC,N,D,0,50.00,200.00,600.00,1200.00,2400.00,2023-01-01,2099-12-31',
-      'STANDARD,N,S,0,37.50,150.00,450.00,900.00,1800.00,2023-01-01,2099-12-31',
-      'STANDARD,N,D,0,75.00,300.00,900.00,1800.00,3600.00,2023-01-01,2099-12-31',
-      'PREMIUM,N,S,0,50.00,200.00,600.00,1200.00,2400.00,2023-01-01,2099-12-31',
-      'PREMIUM,N,D,0,100.00,400.00,1200.00,2400.00,4800.00,2023-01-01,2099-12-31'
-    ].join('\\n');
+    const riskLoadingData = [
+      { ProductCode: 'BASIC', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BASIC', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+    ];
+    
+    const productRateDetailData = [
+      { ProductCode: 'BASIC', StateCode: 'N', ScaleCode: 'S', RateCode: 0, WeeklyRate: 25.00, MonthlyRate: 100.00, QuarterlyRate: 300.00, HalfYearlyRate: 600.00, YearlyRate: 1200.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BASIC', StateCode: 'N', ScaleCode: 'D', RateCode: 0, WeeklyRate: 50.00, MonthlyRate: 200.00, QuarterlyRate: 600.00, HalfYearlyRate: 1200.00, YearlyRate: 2400.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', StateCode: 'N', ScaleCode: 'S', RateCode: 0, WeeklyRate: 37.50, MonthlyRate: 150.00, QuarterlyRate: 450.00, HalfYearlyRate: 900.00, YearlyRate: 1800.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'STANDARD', StateCode: 'N', ScaleCode: 'D', RateCode: 0, WeeklyRate: 75.00, MonthlyRate: 300.00, QuarterlyRate: 900.00, HalfYearlyRate: 1800.00, YearlyRate: 3600.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', StateCode: 'N', ScaleCode: 'S', RateCode: 0, WeeklyRate: 50.00, MonthlyRate: 200.00, QuarterlyRate: 600.00, HalfYearlyRate: 1200.00, YearlyRate: 2400.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'PREMIUM', StateCode: 'N', ScaleCode: 'D', RateCode: 0, WeeklyRate: 100.00, MonthlyRate: 400.00, QuarterlyRate: 1200.00, HalfYearlyRate: 2400.00, YearlyRate: 4800.00, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+    ];
+    
+    // Function to create and save XLSX file
+    function createXlsxFile(data, fileName) {
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+      XLSX.writeFile(workbook, path.join(dataDir, fileName));
+    }
     
     // Write files
-    fs.writeFileSync(path.join(dataDir, 'ProductRateMaster.csv'), productRateMaster);
-    fs.writeFileSync(path.join(dataDir, 'ScaleFactors.csv'), scaleFactors);
-    fs.writeFileSync(path.join(dataDir, 'RebatePercentage.csv'), rebatePercentage);
-    fs.writeFileSync(path.join(dataDir, 'RiskLoading.csv'), riskLoading);
-    fs.writeFileSync(path.join(dataDir, 'ProductRateDetail.csv'), productRateDetail);
+    createXlsxFile(productRateMasterData, 'ProductRateMaster.xlsx');
+    createXlsxFile(scaleFactorsData, 'ScaleFactors.xlsx');
+    createXlsxFile(rebatePercentageData, 'RebatePercentage.xlsx');
+    createXlsxFile(riskLoadingData, 'RiskLoading.xlsx');
+    createXlsxFile(productRateDetailData, 'ProductRateDetail.xlsx');
     
     // Reload data
     dataService.loadData();

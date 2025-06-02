@@ -1,12 +1,17 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./swagger');
 const dataService = require('./dataService');
 const premiumService = require('./premiumService');
 
 // Create Express app
 const app = express();
 app.use(express.json());
+
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Create data directory if it doesn't exist
 const dataDir = path.join(__dirname, 'data');
@@ -17,7 +22,39 @@ if (!fs.existsSync(dataDir)) {
 // Load XLSX data on startup
 dataService.loadData();
 
-// API endpoint for premium calculation
+/**
+ * @swagger
+ * /api/calculate-premium:
+ *   post:
+ *     summary: Calculate insurance premium
+ *     description: Calculates insurance premium based on provided parameters
+ *     tags: [Premium]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PremiumParams'
+ *     responses:
+ *       200:
+ *         description: Premium calculation successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PremiumResult'
+ *       400:
+ *         description: Invalid request parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.post('/api/calculate-premium', async (req, res) => {
   try {
     const params = req.body;
@@ -61,55 +98,79 @@ app.post('/api/calculate-premium', async (req, res) => {
   }
 });
 
-// Sample data generation endpoint
+/**
+ * @swagger
+ * /api/generate-sample-data:
+ *   get:
+ *     summary: Generate sample data
+ *     description: Generates sample Excel files with test data for premium calculation
+ *     tags: [Data]
+ *     responses:
+ *       200:
+ *         description: Sample data generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Sample data generated successfully
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.get('/api/generate-sample-data', (req, res) => {
   try {
     const XLSX = require('xlsx');
     
-    // Create sample data objects
+    // Create sample data objects with business product codes
     const productRateMasterData = [
-      { ProductCode: 'BASIC', StateCode: 'N', RateCode: 0, BaseRate: 100.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'BASIC', StateCode: 'V', RateCode: 0, BaseRate: 95.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', StateCode: 'N', RateCode: 0, BaseRate: 150.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', StateCode: 'V', RateCode: 0, BaseRate: 145.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', StateCode: 'N', RateCode: 0, BaseRate: 200.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', StateCode: 'V', RateCode: 0, BaseRate: 195.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' }
+      { ProductCode: 'H0A', StateCode: 'A', RateCode: 0, BaseRate: 286.80, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'H0A', StateCode: 'N', RateCode: 0, BaseRate: 290.00, LHCApplicable: 'Y', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', StateCode: 'A', RateCode: 0, BaseRate: 82.35, LHCApplicable: 'N', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', StateCode: 'N', RateCode: 0, BaseRate: 85.00, LHCApplicable: 'N', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'AML', StateCode: 'A', RateCode: 0, BaseRate: 6.50, LHCApplicable: 'N', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BML', StateCode: 'A', RateCode: 0, BaseRate: 6.50, LHCApplicable: 'N', RebateApplicable: 'Y', DateOn: '2023-01-01', DateOff: '2099-12-31' }
     ];
     
     const scaleFactorsData = [
-      { ProductCode: 'BASIC', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'BASIC', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'BASIC', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+      { ProductCode: 'H0A', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'H0A', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'H0A', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', ScaleCode: 'F', ScaleFactor: 2.5, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'AML', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'AML', ScaleCode: 'D', ScaleFactor: 2.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BML', ScaleCode: 'S', ScaleFactor: 1.0, DateOn: '2023-01-01', DateOff: '2099-12-31' }
     ];
     
     const rebatePercentageData = [
-      { RebateType: 'TIER1', Rebate: 10.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { RebateType: 'TIER2', Rebate: 20.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { RebateType: 'TIER3', Rebate: 30.0, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+      { RebateType: 'RB', Rebate: 10.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { RebateType: 'RF', Rebate: 20.0, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { RebateType: 'RI', Rebate: 30.0, DateOn: '2023-01-01', DateOff: '2099-12-31' }
     ];
     
     const riskLoadingData = [
-      { ProductCode: 'BASIC', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'BASIC', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+      { ProductCode: 'H0A', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'H0A', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'AML', Sex: 'M', Age: 30, RiskLoading: 0.05, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BML', Sex: 'F', Age: 30, RiskLoading: 0.03, DateOn: '2023-01-01', DateOff: '2099-12-31' }
     ];
     
     const productRateDetailData = [
-      { ProductCode: 'BASIC', StateCode: 'N', ScaleCode: 'S', RateCode: 0, WeeklyRate: 25.00, MonthlyRate: 100.00, QuarterlyRate: 300.00, HalfYearlyRate: 600.00, YearlyRate: 1200.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'BASIC', StateCode: 'N', ScaleCode: 'D', RateCode: 0, WeeklyRate: 50.00, MonthlyRate: 200.00, QuarterlyRate: 600.00, HalfYearlyRate: 1200.00, YearlyRate: 2400.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', StateCode: 'N', ScaleCode: 'S', RateCode: 0, WeeklyRate: 37.50, MonthlyRate: 150.00, QuarterlyRate: 450.00, HalfYearlyRate: 900.00, YearlyRate: 1800.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'STANDARD', StateCode: 'N', ScaleCode: 'D', RateCode: 0, WeeklyRate: 75.00, MonthlyRate: 300.00, QuarterlyRate: 900.00, HalfYearlyRate: 1800.00, YearlyRate: 3600.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', StateCode: 'N', ScaleCode: 'S', RateCode: 0, WeeklyRate: 50.00, MonthlyRate: 200.00, QuarterlyRate: 600.00, HalfYearlyRate: 1200.00, YearlyRate: 2400.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
-      { ProductCode: 'PREMIUM', StateCode: 'N', ScaleCode: 'D', RateCode: 0, WeeklyRate: 100.00, MonthlyRate: 400.00, QuarterlyRate: 1200.00, HalfYearlyRate: 2400.00, YearlyRate: 4800.00, DateOn: '2023-01-01', DateOff: '2099-12-31' }
+      { ProductCode: 'H0A', StateCode: 'A', ScaleCode: 'S', RateCode: 0, WeeklyRate: 71.70, MonthlyRate: 286.80, QuarterlyRate: 860.40, HalfYearlyRate: 1720.80, YearlyRate: 3441.60, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'H0A', StateCode: 'A', ScaleCode: 'D', RateCode: 0, WeeklyRate: 143.40, MonthlyRate: 573.60, QuarterlyRate: 1720.80, HalfYearlyRate: 3441.60, YearlyRate: 6883.20, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', StateCode: 'A', ScaleCode: 'S', RateCode: 0, WeeklyRate: 20.59, MonthlyRate: 82.35, QuarterlyRate: 247.05, HalfYearlyRate: 494.10, YearlyRate: 988.20, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'HA0', StateCode: 'A', ScaleCode: 'D', RateCode: 0, WeeklyRate: 41.18, MonthlyRate: 164.70, QuarterlyRate: 494.10, HalfYearlyRate: 988.20, YearlyRate: 1976.40, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'AML', StateCode: 'A', ScaleCode: 'S', RateCode: 0, WeeklyRate: 1.63, MonthlyRate: 6.50, QuarterlyRate: 19.50, HalfYearlyRate: 39.00, YearlyRate: 78.00, DateOn: '2023-01-01', DateOff: '2099-12-31' },
+      { ProductCode: 'BML', StateCode: 'A', ScaleCode: 'S', RateCode: 0, WeeklyRate: 1.63, MonthlyRate: 6.50, QuarterlyRate: 19.50, HalfYearlyRate: 39.00, YearlyRate: 78.00, DateOn: '2023-01-01', DateOff: '2099-12-31' }
     ];
     
     // Function to create and save XLSX file
@@ -137,7 +198,57 @@ app.get('/api/generate-sample-data', (req, res) => {
   }
 });
 
-// Debug endpoint to check product lookup
+/**
+ * @swagger
+ * /api/debug-product/{productCode}:
+ *   get:
+ *     summary: Debug product lookup
+ *     description: Checks if a product exists in the data store
+ *     tags: [Debug]
+ *     parameters:
+ *       - in: path
+ *         name: productCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product code to look up
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         description: State code (defaults to A)
+ *       - in: query
+ *         name: rate
+ *         schema:
+ *           type: string
+ *         description: Rate code (defaults to 0)
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Effective date (defaults to 2025-06-01)
+ *     responses:
+ *       200:
+ *         description: Product lookup result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 product:
+ *                   type: object
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.get('/api/debug-product/:productCode', (req, res) => {
   try {
     const { productCode } = req.params;
@@ -182,6 +293,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API documentation:`);
+  console.log(`Swagger UI: http://localhost:${PORT}/api-docs`);
   console.log(`1. Generate sample data: GET http://localhost:${PORT}/api/generate-sample-data`);
   console.log(`2. Calculate premium: POST http://localhost:${PORT}/api/calculate-premium`);
   console.log(`3. Debug product lookup: GET http://localhost:${PORT}/api/debug-product/H0A`);
@@ -190,13 +302,13 @@ app.listen(PORT, () => {
 // Example request body for calculate-premium:
 /*
 {
-  "effectiveDate": "2023-06-01",
-  "productCodes": ["BASIC", "STANDARD"],
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "productCodes": ["H0A", "HA0"],
+  "stateCode": "A",
   "scaleCode": "S",
   "rateCode": "0",
   "paymentFrequency": "monthly",
-  "rebateType": "TIER1",
+  "rebateType": "RB",
   "lhcPercentage": 0,
   "useBaseRate": true,
   "useRiskRating": false

@@ -2,6 +2,8 @@
 
 This application calculates health insurance premiums based on various factors such as product type, state, scale code, payment frequency, and more.
 
+API documentation is available via Swagger UI at http://localhost:3000/api-docs when the server is running.
+
 ## Project Structure
 
 - **api/**: Backend API built with Node.js and Express

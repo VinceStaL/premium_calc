@@ -25,6 +25,11 @@ This API provides endpoints for calculating health insurance premiums based on v
 
 ## API Endpoints
 
+API documentation is available via Swagger UI at:
+```
+http://localhost:3000/api-docs
+```
+
 ### 1. Generate Sample Data
 
 ```

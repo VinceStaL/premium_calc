@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { calculatePremium } from '../services/api';
 import { PremiumParams, PremiumResult } from '../types/premium';
 import { Calculator } from 'lucide-react';
@@ -8,12 +8,17 @@ const PremiumCalculator = () => {
   const [results, setResults] = useState<PremiumResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   
+  // Debug effect to monitor state changes
+  useEffect(() => {
+    console.log('Results state updated:', results);
+  }, [results]);
+  
   const [formData, setFormData] = useState<PremiumParams>({
-    productCodes: [''],
+    productCodes: ['BASIC'],
     effectiveDate: new Date().toISOString().split('T')[0],
-    stateCode: 'NSW',
+    stateCode: 'N',
     scaleCode: 'S',
-    rateCode: 'STD',
+    rateCode: '0',
     paymentFrequency: 'monthly',
     rebateType: 'NONE',
     lhcPercentage: 0,
@@ -50,11 +55,32 @@ const PremiumCalculator = () => {
     setError(null);
     
     try {
-      const results = await calculatePremium(formData);
-      setResults(results);
-    } catch (err) {
-      setError('Failed to calculate premium. Please check your inputs and try again.');
-      console.error(err);
+      console.log('Submitting form data:', formData);
+      
+      // Direct API call with fetch instead of using the service
+      const response = await fetch('/api/calculate-premium', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API response:', data);
+      
+      if (data.results) {
+        setResults(data.results);
+      } else {
+        setError('Unexpected response format from API');
+      }
+    } catch (err: any) {
+      setError(`Failed to calculate premium: ${err.message}`);
+      console.error('Error in handleSubmit:', err);
     } finally {
       setLoading(false);
     }
@@ -74,14 +100,17 @@ const PremiumCalculator = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Product Code
               </label>
-              <input
-                type="text"
+              <select
                 name="productCodes"
                 value={formData.productCodes[0]}
-                onChange={handleChange}
+                onChange={(e) => setFormData({...formData, productCodes: [e.target.value]})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
-              />
+              >
+                <option value="BASIC">BASIC</option>
+                <option value="STANDARD">STANDARD</option>
+                <option value="PREMIUM">PREMIUM</option>
+              </select>
             </div>
             
             <div>
@@ -109,14 +138,8 @@ const PremiumCalculator = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
-                <option value="NSW">NSW</option>
-                <option value="VIC">VIC</option>
-                <option value="QLD">QLD</option>
-                <option value="SA">SA</option>
-                <option value="WA">WA</option>
-                <option value="TAS">TAS</option>
-                <option value="NT">NT</option>
-                <option value="ACT">ACT</option>
+                <option value="N">NSW (N)</option>
+                <option value="V">VIC (V)</option>
               </select>
             </div>
             
@@ -132,11 +155,9 @@ const PremiumCalculator = () => {
                 required
               >
                 <option value="S">Single (S)</option>
-                <option value="C">Couple (C)</option>
+                <option value="D">Couple (D)</option>
                 <option value="F">Family (F)</option>
                 <option value="SP">Single Parent (SP)</option>
-                <option value="D">Duo (D)</option>
-                <option value="Q">Quad (Q)</option>
               </select>
             </div>
             
@@ -144,14 +165,15 @@ const PremiumCalculator = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Rate Code
               </label>
-              <input
-                type="text"
+              <select
                 name="rateCode"
                 value={formData.rateCode}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
-              />
+              >
+                <option value="0">Standard (0)</option>
+              </select>
             </div>
             
             <div>
@@ -185,7 +207,6 @@ const PremiumCalculator = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="NONE">None</option>
-                <option value="BASE">Base Tier</option>
                 <option value="TIER1">Tier 1</option>
                 <option value="TIER2">Tier 2</option>
                 <option value="TIER3">Tier 3</option>
@@ -323,7 +344,7 @@ const PremiumCalculator = () => {
           </div>
         )}
         
-        {results.length > 0 && (
+        {results && results.length > 0 && (
           <div className="mt-8">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Results</h2>
             

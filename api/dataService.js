@@ -50,13 +50,26 @@ function loadData() {
 
 // Query functions to replace database queries
 function getProductRateMaster(productCode, stateCode, rateCode, effectiveDate) {
-  return dataStore.ProductRateMaster.find(row => 
+  console.log(`Looking for ProductRateMaster: ${productCode}, ${stateCode}, ${rateCode}, ${effectiveDate}`);
+  
+  const result = dataStore.ProductRateMaster.find(row => 
     row.ProductCode === productCode &&
     row.StateCode === stateCode &&
     parseInt(row.RateCode) === parseInt(rateCode) &&
     new Date(row.DateOn) <= new Date(effectiveDate) &&
     new Date(row.DateOff) > new Date(effectiveDate)
   );
+  
+  if (!result) {
+    console.log('No matching product found. Checking all products with this code:');
+    const matches = dataStore.ProductRateMaster.filter(row => row.ProductCode === productCode);
+    console.log(`Found ${matches.length} products with code ${productCode}`);
+    if (matches.length > 0) {
+      console.log('First match:', matches[0]);
+    }
+  }
+  
+  return result;
 }
 
 function getProductRateDetail(productCode, stateCode, scaleCode, rateCode, effectiveDate) {
@@ -106,10 +119,12 @@ function getRebatePercentage(rebateType, effectiveDate) {
 }
 
 module.exports = {
+  dataStore,
   loadData,
   getProductRateMaster,
   getProductRateDetail,
   getScaleFactor,
   getRiskLoading,
-  getRebatePercentage
+  getRebatePercentage,
+  dataStore // Export dataStore for debugging
 };

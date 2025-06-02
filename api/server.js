@@ -137,6 +137,46 @@ app.get('/api/generate-sample-data', (req, res) => {
   }
 });
 
+// Debug endpoint to check product lookup
+app.get('/api/debug-product/:productCode', (req, res) => {
+  try {
+    const { productCode } = req.params;
+    const stateCode = req.query.state || 'A';
+    const rateCode = req.query.rate || '0';
+    const effectiveDate = req.query.date || '2025-06-01';
+    
+    // Try to find the product
+    const product = dataService.getProductRateMaster(
+      productCode, 
+      stateCode, 
+      rateCode, 
+      effectiveDate
+    );
+    
+    if (product) {
+      res.json({
+        success: true,
+        message: 'Product found',
+        product
+      });
+    } else {
+      // Check if the product exists at all
+      const allProducts = dataService.dataStore.ProductRateMaster;
+      const matchingProducts = allProducts.filter(p => p.ProductCode === productCode);
+      
+      res.json({
+        success: false,
+        message: 'Product not found',
+        searchParams: { productCode, stateCode, rateCode, effectiveDate },
+        matchCount: matchingProducts.length,
+        sampleMatches: matchingProducts.slice(0, 3)
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -144,6 +184,7 @@ app.listen(PORT, () => {
   console.log(`API documentation:`);
   console.log(`1. Generate sample data: GET http://localhost:${PORT}/api/generate-sample-data`);
   console.log(`2. Calculate premium: POST http://localhost:${PORT}/api/calculate-premium`);
+  console.log(`3. Debug product lookup: GET http://localhost:${PORT}/api/debug-product/H0A`);
 });
 
 // Example request body for calculate-premium:

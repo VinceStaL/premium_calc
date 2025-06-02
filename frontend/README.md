@@ -5,7 +5,7 @@ A simple React frontend for the Premium Calculator application.
 ## Features
 
 - Calculate insurance premiums based on various parameters
-- Support for different product codes, states, and payment frequencies
+- Support for product codes (H0A, HA0, AML, BML), states, and payment frequencies
 - Risk rating calculations
 - LHC and rebate adjustments
 - Responsive design

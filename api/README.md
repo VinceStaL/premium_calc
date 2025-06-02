@@ -44,13 +44,13 @@ This endpoint calculates the premium based on the provided parameters.
 Example request body:
 ```json
 {
-  "effectiveDate": "2023-06-01",
-  "productCodes": ["BASIC", "STANDARD"],
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "productCodes": ["H0A", "HA0"],
+  "stateCode": "A",
   "scaleCode": "S",
   "rateCode": "0",
   "paymentFrequency": "monthly",
-  "rebateType": "TIER1",
+  "rebateType": "RB",
   "lhcPercentage": 0,
   "useBaseRate": true,
   "useRiskRating": false

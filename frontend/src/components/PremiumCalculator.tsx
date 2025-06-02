@@ -14,9 +14,9 @@ const PremiumCalculator = () => {
   }, [results]);
   
   const [formData, setFormData] = useState<PremiumParams>({
-    productCodes: ['BASIC'],
+    productCodes: ['H0A'],
     effectiveDate: new Date().toISOString().split('T')[0],
-    stateCode: 'N',
+    stateCode: 'A',
     scaleCode: 'S',
     rateCode: '0',
     paymentFrequency: 'monthly',
@@ -107,9 +107,10 @@ const PremiumCalculator = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
-                <option value="BASIC">BASIC</option>
-                <option value="STANDARD">STANDARD</option>
-                <option value="PREMIUM">PREMIUM</option>
+                <option value="H0A">H0A</option>
+                <option value="HA0">HA0</option>
+                <option value="AML">AML</option>
+                <option value="BML">BML</option>
               </select>
             </div>
             
@@ -138,8 +139,14 @@ const PremiumCalculator = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
+                <option value="A">ACT (A)</option>
                 <option value="N">NSW (N)</option>
+                <option value="Q">QLD (Q)</option>
+                <option value="S">SA (S)</option>
+                <option value="T">TAS (T)</option>
                 <option value="V">VIC (V)</option>
+                <option value="W">WA (W)</option>
+                <option value="X">NT (X)</option>
               </select>
             </div>
             
@@ -157,7 +164,9 @@ const PremiumCalculator = () => {
                 <option value="S">Single (S)</option>
                 <option value="D">Couple (D)</option>
                 <option value="F">Family (F)</option>
-                <option value="SP">Single Parent (SP)</option>
+                <option value="P">Single Parent (P)</option>
+                <option value="Q">Extended Family (Q)</option>
+                <option value="E">Extended (E)</option>
               </select>
             </div>
             
@@ -207,9 +216,18 @@ const PremiumCalculator = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="NONE">None</option>
-                <option value="TIER1">Tier 1</option>
-                <option value="TIER2">Tier 2</option>
-                <option value="TIER3">Tier 3</option>
+                <option value="RB">RB</option>
+                <option value="RF">RF</option>
+                <option value="RI">RI</option>
+                <option value="RL">RL</option>
+                <option value="RD">RD</option>
+                <option value="RG">RG</option>
+                <option value="RJ">RJ</option>
+                <option value="RM">RM</option>
+                <option value="RE">RE</option>
+                <option value="RH">RH</option>
+                <option value="RK">RK</option>
+                <option value="RN">RN</option>
               </select>
             </div>
             
@@ -291,7 +309,7 @@ const PremiumCalculator = () => {
                 />
               </div>
               
-              {['D', 'F', 'Q'].includes(formData.scaleCode) && (
+              {['D', 'F', 'Q', 'E'].includes(formData.scaleCode) && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">

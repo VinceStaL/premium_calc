@@ -2,6 +2,7 @@ const dataService = require('./dataService');
 
 async function calculateSinglePremium(productCode, params) {
   // Step 1: Get base premium and flags from ProductRateMaster
+  console.log(`Looking for product: ${productCode}, state: ${params.stateCode}, rate: ${params.rateCode}, date: ${params.effectiveDate}`);
   const masterData = dataService.getProductRateMaster(
     productCode, 
     params.stateCode, 
@@ -10,6 +11,14 @@ async function calculateSinglePremium(productCode, params) {
   );
 
   if (!masterData) {
+    console.log(`No product found for ${productCode}. Checking all products with this code:`);
+    const matches = dataService.dataStore.ProductRateMaster.filter(row => row.ProductCode === productCode);
+    console.log(`Found ${matches.length} products with code ${productCode}`);
+    if (matches.length > 0) {
+      console.log(`Sample match:`, matches[0]);
+      console.log(`State codes available:`, [...new Set(matches.map(m => m.StateCode))]);
+      console.log(`Rate codes available:`, [...new Set(matches.map(m => m.RateCode))]);
+    }
     throw new Error(`No base rate found for product code ${productCode}`);
   }
 

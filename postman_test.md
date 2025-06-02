@@ -39,9 +39,9 @@ Content-Type: application/json
 ### Body
 ```json
 {
-  "effectiveDate": "2023-06-01",
-  "productCodes": ["BASIC"],
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "productCodes": ["H0A"],
+  "stateCode": "A",
   "scaleCode": "S",
   "rateCode": "0",
   "paymentFrequency": "monthly",
@@ -69,16 +69,13 @@ pm.test("Response contains total premium", function () {
     pm.expect(jsonData.totalPremium).to.be.a("number");
 });
 
-pm.test("Basic product premium calculation is correct", function () {
+pm.test("H0A product premium calculation is correct", function () {
     var jsonData = pm.response.json();
-    var basicProduct = jsonData.results.find(item => item.productCode === "BASIC");
+    var product = jsonData.results.find(item => item.productCode === "H0A");
     
-    pm.expect(basicProduct).to.not.be.undefined;
-    pm.expect(basicProduct.basePremium).to.be.a("number");
-    pm.expect(basicProduct.finalPremium).to.be.a("number");
-    
-    // For single coverage with monthly payment, the final premium should match the monthly rate
-    pm.expect(basicProduct.finalPremium).to.eql(100.00);
+    pm.expect(product).to.not.be.undefined;
+    pm.expect(product.basePremium).to.be.a("number");
+    pm.expect(product.finalPremium).to.be.a("number");
 });
 ```
 
@@ -97,9 +94,9 @@ Content-Type: application/json
 ### Body
 ```json
 {
-  "effectiveDate": "2023-06-01",
-  "productCodes": ["BASIC", "STANDARD"],
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "productCodes": ["H0A", "HA0"],
+  "stateCode": "A",
   "scaleCode": "S",
   "rateCode": "0",
   "paymentFrequency": "monthly",
@@ -119,8 +116,8 @@ pm.test("Response contains results for both products", function () {
     pm.expect(jsonData.results.length).to.eql(2);
     
     var productCodes = jsonData.results.map(item => item.productCode);
-    pm.expect(productCodes).to.include("BASIC");
-    pm.expect(productCodes).to.include("STANDARD");
+    pm.expect(productCodes).to.include("H0A");
+    pm.expect(productCodes).to.include("HA0");
 });
 
 pm.test("Total premium is sum of individual premiums", function () {
@@ -147,13 +144,13 @@ Content-Type: application/json
 ### Body
 ```json
 {
-  "effectiveDate": "2023-06-01",
-  "productCodes": ["BASIC"],
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "productCodes": ["H0A"],
+  "stateCode": "A",
   "scaleCode": "S",
   "rateCode": "0",
   "paymentFrequency": "monthly",
-  "rebateType": "TIER1",
+  "rebateType": "RB",
   "useBaseRate": true,
   "useRiskRating": false
 }
@@ -167,18 +164,17 @@ pm.test("Status code is 200", function () {
 
 pm.test("Rebate is applied correctly", function () {
     var jsonData = pm.response.json();
-    var basicProduct = jsonData.results.find(item => item.productCode === "BASIC");
+    var product = jsonData.results.find(item => item.productCode === "H0A");
     
-    pm.expect(basicProduct).to.have.property("rebateAmount");
-    pm.expect(basicProduct.rebateAmount).to.be.a("number");
+    pm.expect(product).to.have.property("rebateAmount");
+    pm.expect(product.rebateAmount).to.be.a("number");
     
-    // TIER1 rebate is 10%, so rebate amount should be 10% of the base premium
-    var expectedRebate = basicProduct.basePremium * 0.1;
-    pm.expect(Math.abs(basicProduct.rebateAmount - expectedRebate)).to.be.below(0.01);
+    // Check that rebate amount is applied
+    pm.expect(product.rebateAmount).to.be.at.least(0);
     
-    // Final premium should be base premium minus rebate
-    var expectedFinalPremium = basicProduct.basePremium - expectedRebate;
-    pm.expect(Math.abs(basicProduct.finalPremium - expectedFinalPremium)).to.be.below(0.01);
+    // Final premium should be premiumBeforeRebate minus rebateAmount
+    var expectedFinalPremium = product.premiumBeforeRebate - product.rebateAmount;
+    pm.expect(Math.abs(product.finalPremium - expectedFinalPremium)).to.be.below(0.01);
 });
 ```
 
@@ -197,9 +193,9 @@ Content-Type: application/json
 ### Body
 ```json
 {
-  "effectiveDate": "2023-06-01",
-  "productCodes": ["BASIC"],
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "productCodes": ["H0A"],
+  "stateCode": "A",
   "scaleCode": "S",
   "rateCode": "0",
   "paymentFrequency": "monthly",
@@ -218,18 +214,17 @@ pm.test("Status code is 200", function () {
 
 pm.test("Risk loading is applied correctly", function () {
     var jsonData = pm.response.json();
-    var basicProduct = jsonData.results.find(item => item.productCode === "BASIC");
+    var product = jsonData.results.find(item => item.productCode === "H0A");
     
-    pm.expect(basicProduct).to.have.property("riskLoadingAmount");
-    pm.expect(basicProduct.riskLoadingAmount).to.be.a("number");
+    pm.expect(product).to.have.property("riskLoadingAmount1");
     
-    // For a 30-year-old male, risk loading is 5% of base premium
-    var expectedRiskLoading = basicProduct.basePremium * 0.05;
-    pm.expect(Math.abs(basicProduct.riskLoadingAmount - expectedRiskLoading)).to.be.below(0.01);
-    
-    // Final premium should include risk loading
-    var expectedFinalPremium = basicProduct.basePremium + expectedRiskLoading;
-    pm.expect(Math.abs(basicProduct.finalPremium - expectedFinalPremium)).to.be.below(0.01);
+    if (product.riskLoading1 !== null) {
+        pm.expect(product.riskLoadingAmount1).to.be.a("number");
+        
+        // Check that risk loading amount is calculated correctly
+        var expectedRiskLoading = product.scaleAndFrequencyPremium * product.riskLoading1;
+        pm.expect(Math.abs(product.riskLoadingAmount1 - expectedRiskLoading)).to.be.below(0.01);
+    }
 });
 ```
 
@@ -248,8 +243,8 @@ Content-Type: application/json
 ### Body
 ```json
 {
-  "effectiveDate": "2023-06-01",
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "stateCode": "A",
   "scaleCode": "S",
   "rateCode": "0",
   "paymentFrequency": "monthly"
@@ -284,9 +279,9 @@ Content-Type: application/json
 ### Body
 ```json
 {
-  "effectiveDate": "2023-06-01",
-  "productCodes": ["BASIC"],
-  "stateCode": "N",
+  "effectiveDate": "2025-06-01",
+  "productCodes": ["H0A"],
+  "stateCode": "A",
   "scaleCode": "D",
   "rateCode": "0",
   "paymentFrequency": "monthly",

@@ -42,6 +42,7 @@ const req = http.request(options, (res) => {
       console.log(JSON.stringify(parsedData, null, 2));
     } catch (e) {
       console.log(responseData);
+      console.log('Error parsing response:', e.message);
     }
   });
 });

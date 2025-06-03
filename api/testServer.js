@@ -11,7 +11,7 @@ dataService.loadData();
 // Simple test endpoint
 app.get('/test', (req, res) => {
   // Test if we can find H0A product
-  const product = dataService.getProductRateMaster('H0A', 'A', '0', '2025-06-01');
+  const product = dataService.getProductRateMaster('H0A', 'A', '0', '2023-12-01');
   
   if (product) {
     res.json({

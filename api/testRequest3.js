@@ -14,7 +14,7 @@ const requestData = JSON.stringify({
 
 // Set up the request options
 const options = {
-  hostname: 'localhost',
+  hostname: '127.0.0.1', // Using IP address instead of localhost
   port: 3000,
   path: '/api/calculate-premium',
   method: 'POST',
@@ -33,6 +33,7 @@ const req = http.request(options, (res) => {
   
   res.on('data', (chunk) => {
     responseData += chunk;
+    console.log('Received chunk:', chunk.toString());
   });
   
   res.on('end', () => {
@@ -42,6 +43,7 @@ const req = http.request(options, (res) => {
       console.log(JSON.stringify(parsedData, null, 2));
     } catch (e) {
       console.log(responseData);
+      console.log('Error parsing response:', e.message);
     }
   });
 });

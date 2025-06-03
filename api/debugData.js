@@ -3,78 +3,68 @@ const path = require('path');
 const XLSX = require('xlsx');
 const dataService = require('./dataService');
 
-// Load data into memory
+// Load data
 dataService.loadData();
 
-// Debug function to check if a product exists
-function checkProduct(productCode, stateCode, rateCode) {
-  console.log(`\nChecking for product: ${productCode}, state: ${stateCode}, rate: ${rateCode}`);
+// Test product lookup
+const productCode = 'H0A';
+const stateCode = 'A';
+const rateCode = 0;
+const effectiveDate = '2023-12-01';
+
+console.log(`Looking for product: ${productCode}, state: ${stateCode}, rate: ${rateCode}, date: ${effectiveDate}`);
+
+// Direct lookup in the data store
+const matches = dataService.dataStore.ProductRateMaster.filter(row => 
+  row.ProductCode === productCode &&
+  row.StateCode === stateCode &&
+  parseInt(row.RateCode) === parseInt(rateCode)
+);
+
+console.log(`Found ${matches.length} direct matches by code, state, and rate`);
+if (matches.length > 0) {
+  console.log('First match:', JSON.stringify(matches[0], null, 2));
   
-  // Check in ProductRateMaster
-  const masterData = dataService.getProductRateMaster(
-    productCode, 
-    stateCode, 
-    rateCode, 
-    '2025-06-01'
-  );
-  
-  if (masterData) {
-    console.log('FOUND in ProductRateMaster:', masterData);
-  } else {
-    console.log('NOT FOUND in ProductRateMaster');
+  // Check date comparison
+  const effectiveDateTime = new Date(effectiveDate);
+  matches.forEach((match, index) => {
+    const dateOn = new Date(match.DateOn);
+    const dateOff = new Date(match.DateOff);
     
-    // Check if the product code exists at all
-    const allProducts = require('./dataService').dataStore.ProductRateMaster;
-    const matchingProducts = allProducts.filter(p => p.ProductCode === productCode);
-    
-    if (matchingProducts.length > 0) {
-      console.log(`Found ${matchingProducts.length} entries with product code ${productCode}`);
-      console.log('First matching product:', matchingProducts[0]);
-      
-      // Check state codes
-      const states = [...new Set(matchingProducts.map(p => p.StateCode))];
-      console.log(`Available state codes for ${productCode}:`, states);
-      
-      // Check rate codes
-      const rates = [...new Set(matchingProducts.map(p => p.RateCode))];
-      console.log(`Available rate codes for ${productCode}:`, rates);
-      
-      // Check exact match
-      const exactMatch = matchingProducts.find(p => 
-        p.StateCode === stateCode && 
-        parseInt(p.RateCode) === parseInt(rateCode)
-      );
-      
-      if (exactMatch) {
-        console.log('Found exact match for product, state, and rate:', exactMatch);
-        console.log('Date check:', 
-          new Date(exactMatch.DateOn) <= new Date('2025-06-01'),
-          new Date(exactMatch.DateOff) > new Date('2025-06-01')
-        );
-      } else {
-        console.log('No exact match found for the combination');
-      }
-    } else {
-      console.log(`No products found with code ${productCode}`);
-    }
-  }
+    console.log(`\nMatch ${index + 1} date check:`);
+    console.log(`DateOn: ${match.DateOn} (${dateOn})`);
+    console.log(`DateOff: ${match.DateOff} (${dateOff})`);
+    console.log(`Effective Date: ${effectiveDate} (${effectiveDateTime})`);
+    console.log(`DateOn <= EffectiveDate: ${dateOn <= effectiveDateTime}`);
+    console.log(`DateOff > EffectiveDate: ${dateOff > effectiveDateTime}`);
+    console.log(`Date check passes: ${dateOn <= effectiveDateTime && dateOff > effectiveDateTime}`);
+  });
 }
 
-// Check for H0A product
-checkProduct('H0A', 'A', '0');
+// Try using the service function
+const result = dataService.getProductRateMaster(productCode, stateCode, rateCode, effectiveDate);
+console.log('\nUsing dataService.getProductRateMaster:');
+if (result) {
+  console.log('FOUND in ProductRateMaster:', result);
+} else {
+  console.log('NOT FOUND in ProductRateMaster');
+}
 
-// Check for other products
-checkProduct('HA0', 'A', '0');
-checkProduct('AML', 'A', '0');
-checkProduct('BML', 'A', '0');
+// Check all products
+console.log('\nAll products in ProductRateMaster:');
+const allProducts = [...new Set(dataService.dataStore.ProductRateMaster.map(p => p.ProductCode))];
+console.log(allProducts);
 
-// Print all product codes, state codes, and rate codes
-console.log('\n\nAll available combinations:');
-const allProducts = require('./dataService').dataStore.ProductRateMaster;
-const combinations = allProducts.map(p => `${p.ProductCode}-${p.StateCode}-${p.RateCode}`);
-console.log([...new Set(combinations)].slice(0, 20), `... and ${combinations.length - 20} more`);
+// Check all state codes for H0A
+console.log('\nAll state codes for H0A:');
+const h0aStates = [...new Set(dataService.dataStore.ProductRateMaster
+  .filter(p => p.ProductCode === 'H0A')
+  .map(p => p.StateCode))];
+console.log(h0aStates);
 
-// Export the dataStore for inspection
-console.log('\nDataStore loaded:', Object.keys(require('./dataService').dataStore).map(
-  key => `${key}: ${require('./dataService').dataStore[key].length} rows`
-));
+// Check all rate codes for H0A and state A
+console.log('\nAll rate codes for H0A and state A:');
+const h0aRates = [...new Set(dataService.dataStore.ProductRateMaster
+  .filter(p => p.ProductCode === 'H0A' && p.StateCode === 'A')
+  .map(p => p.RateCode))];
+console.log(h0aRates);

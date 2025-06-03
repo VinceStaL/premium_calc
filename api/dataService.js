@@ -50,6 +50,13 @@ function loadData() {
 
 // Query functions to replace database queries
 function getProductRateMaster(productCode, stateCode, rateCode, effectiveDate) {
+  console.log('DEBUG - getProductRateMaster called with:');
+  console.log('  productCode:', productCode);
+  console.log('  stateCode:', stateCode);
+  console.log('  rateCode:', rateCode);
+  console.log('  effectiveDate:', effectiveDate);
+  console.log('  effectiveDate as Date object:', new Date(effectiveDate));
+
   console.log(`Looking for ProductRateMaster: ${productCode}, ${stateCode}, ${rateCode}, ${effectiveDate}`);
   
   const result = dataStore.ProductRateMaster.find(row => 
@@ -69,6 +76,11 @@ function getProductRateMaster(productCode, stateCode, rateCode, effectiveDate) {
     }
   }
   
+  if (result) {
+    console.log('DEBUG - Found matching product:', JSON.stringify(result, null, 2));
+  } else {
+    console.log('DEBUG - No matching product found');
+  }
   return result;
 }
 

@@ -59,6 +59,10 @@ app.post('/api/calculate-premium', async (req, res) => {
   try {
     const params = req.body;
     
+    // Debug logging
+    console.log('DEBUG - /api/calculate-premium request received:');
+    console.log(JSON.stringify(params, null, 2));
+    
     // Validate required parameters
     if (!params.effectiveDate) return res.status(400).json({ error: 'Effective Date is required' });
     if (!params.productCodes || !params.productCodes.some(code => code)) {
@@ -227,7 +231,7 @@ app.get('/api/generate-sample-data', (req, res) => {
  *         schema:
  *           type: string
  *           format: date
- *         description: Effective date (defaults to 2025-06-01)
+ *         description: Effective date (defaults to 2023-12-01)
  *     responses:
  *       200:
  *         description: Product lookup result
@@ -254,7 +258,7 @@ app.get('/api/debug-product/:productCode', (req, res) => {
     const { productCode } = req.params;
     const stateCode = req.query.state || 'A';
     const rateCode = req.query.rate || '0';
-    const effectiveDate = req.query.date || '2025-06-01';
+    const effectiveDate = req.query.date || '2023-12-01';
     
     // Try to find the product
     const product = dataService.getProductRateMaster(
@@ -302,7 +306,7 @@ app.listen(PORT, () => {
 // Example request body for calculate-premium:
 /*
 {
-  "effectiveDate": "2025-06-01",
+  "effectiveDate": "2023-12-01",
   "productCodes": ["H0A", "HA0"],
   "stateCode": "A",
   "scaleCode": "S",

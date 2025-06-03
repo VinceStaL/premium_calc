@@ -48,8 +48,8 @@ function checkProduct(productCode, stateCode, rateCode) {
       if (exactMatch) {
         console.log('Found exact match for product, state, and rate:', exactMatch);
         console.log('Date check:', 
-          new Date(exactMatch.DateOn) <= new Date('2025-06-01'),
-          new Date(exactMatch.DateOff) > new Date('2025-06-01')
+          new Date(exactMatch.DateOn) <= new Date('2024-06-01'),
+          new Date(exactMatch.DateOff) > new Date('2024-06-01')
         );
       } else {
         console.log('No exact match found for the combination');

@@ -2,7 +2,7 @@ const http = require('http');
 
 // Create the request data
 const requestData = JSON.stringify({
-  effectiveDate: '2025-06-01',
+  effectiveDate: '2024-06-01',
   productCodes: ['H0A'],
   stateCode: 'A',
   scaleCode: 'S',

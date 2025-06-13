@@ -248,7 +248,9 @@ The application uses Excel files instead of a traditional database:
 
 ## Deployment Architecture
 
-The application can be deployed as follows:
+The application can be deployed in multiple ways:
+
+### Traditional Deployment
 
 ```mermaid
 graph TD
@@ -257,6 +259,50 @@ graph TD
     WebServer -->|API Requests| Backend[Backend Node.js API]
     Backend -->|Read| DataFiles[Excel Data Files]
 ```
+
+### Containerized Deployment
+
+```mermaid
+graph TD
+    Client[Web Browser] -->|HTTP/HTTPS| LoadBalancer[Load Balancer]
+    
+    subgraph "Docker Environment"
+        LoadBalancer -->|Port 80| FrontendContainer[Frontend Container]
+        LoadBalancer -->|Port 3000| BackendContainer[Backend Container]
+        BackendContainer -->|Volume Mount| DataVolume[Data Volume]
+    end
+    
+    DataVolume -->|Excel Files| DataFiles[Excel Data Files]
+```
+
+## Docker Implementation
+
+The application is containerized using Docker for easier deployment and environment consistency:
+
+1. **Backend Container**
+   - Node.js Alpine-based image
+   - Exposes port 3000
+   - Mounts data directory as volume
+   - Configurable via environment variables
+
+2. **Frontend Container**
+   - Multi-stage build with Node.js for building and Nginx for serving
+   - Exposes port 80
+   - Configurable API URL via environment variables
+   - Nginx configured to proxy API requests
+
+3. **Docker Compose Setup**
+   - Defines both services in a single compose file
+   - Sets up networking between containers
+   - Configures volume mounts for data persistence
+   - Allows for easy deployment of the complete stack
+
+### Container Communication
+
+- In Docker Compose: Frontend container communicates with backend using service name (`http://api:3000`)
+- Standalone containers: 
+  - On macOS/Windows: Use `host.docker.internal` to reach host services
+  - On Linux: Use host machine's IP address or network bridge
 
 ## Security Considerations
 
@@ -271,6 +317,11 @@ graph TD
 3. **Data Protection**
    - Excel files should be properly secured in production
    - Consider encryption for sensitive data
+
+4. **Container Security**
+   - Use minimal base images to reduce attack surface
+   - Don't run containers as root
+   - Scan images for vulnerabilities
 
 ## Future Enhancements
 
@@ -290,10 +341,10 @@ graph TD
    - Add comprehensive logging
    - Implement monitoring for system health
 
-5. **Containerization**
-   - Package the application as Docker containers
-   - Simplify deployment and scaling
+5. **Container Orchestration**
+   - Deploy to Kubernetes for better scaling and management
+   - Implement health checks and auto-healing
 
 ## Conclusion
 
-The Premium Calculator application follows a clean architecture with separation of concerns between frontend and backend components. The use of Excel files for data storage provides a simple solution for this specific use case, though a database migration would be recommended for a production environment with higher load or security requirements.
+The Premium Calculator application follows a clean architecture with separation of concerns between frontend and backend components. The containerized deployment option provides flexibility and consistency across different environments. The use of Excel files for data storage provides a simple solution for this specific use case, though a database migration would be recommended for a production environment with higher load or security requirements.

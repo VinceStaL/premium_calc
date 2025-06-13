@@ -50,6 +50,66 @@ API documentation is available via Swagger UI at http://localhost:3000/api-docs 
 
    The frontend will be available at http://localhost:5173
 
+## Docker Deployment
+
+### Using Docker Compose (Recommended)
+
+To run both the frontend and backend with a single command:
+
+1. From the project root directory:
+   ```
+   docker-compose up -d
+   ```
+
+2. Access the application:
+   - Frontend: http://localhost
+   - Backend API: http://localhost:3000
+   - API Documentation: http://localhost:3000/api-docs
+
+### Running Individual Containers
+
+#### Backend Container
+
+```bash
+# Build the image
+cd premium_calc/api
+docker build -t premium-calc-api .
+
+# Run the container
+docker run -p 3000:3000 -d \
+  -v $(pwd)/data:/usr/src/app/data \
+  -v $(pwd)/../data_files:/usr/src/app/data_files \
+  --name premium-calc-api \
+  premium-calc-api
+```
+
+#### Frontend Container
+
+```bash
+# Build the image
+cd premium_calc/frontend
+docker build -t premium-calc-frontend .
+
+# Run the container (macOS/Windows)
+docker run -p 80:80 -d \
+  -e API_URL=http://host.docker.internal:3000 \
+  --name premium-calc-frontend \
+  premium-calc-frontend
+
+# Run the container (Linux)
+docker run -p 80:80 -d \
+  -e API_URL=http://YOUR_HOST_IP:3000 \
+  --name premium-calc-frontend \
+  premium-calc-frontend
+```
+
+### Important Docker Notes
+
+- On macOS/Windows, use `host.docker.internal` to connect to services on your host machine
+- On Linux, use your host machine's actual IP address
+- Make sure the port in API_URL matches the port your backend is running on
+- See individual README files in api/ and frontend/ directories for more detailed Docker instructions
+
 ## Data Files
 
 The application uses Excel files for data storage:
@@ -71,3 +131,10 @@ The application supports the following product codes from the business files:
 ## Testing
 
 Postman test scripts are available in the `postman_test.md` file for testing the API endpoints.
+
+## Documentation
+
+- **README.md**: This file, provides an overview and setup instructions
+- **architecture_document.md**: Detailed architecture documentation
+- **api/README.docker.md**: Docker-specific instructions for the backend
+- **frontend/README.docker.md**: Docker-specific instructions for the frontend

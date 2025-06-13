@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { calculatePremium } from '../services/api';
+// Remove unused import
 import { PremiumParams, PremiumResult } from '../types/premium';
 import { Calculator } from 'lucide-react';
 

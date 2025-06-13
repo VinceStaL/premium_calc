@@ -70,17 +70,33 @@ docker build -t premium-calc-frontend:latest .
 ### Running the Container
 
 ```bash
-# Basic usage
-docker run -p 80:80 -e API_URL=http://localhost:3000 premium-calc-frontend:latest
+# On macOS with Docker Desktop
+docker run -p 80:80 -e API_URL=http://host.docker.internal:3000 premium-calc-frontend:latest
+
+# On Linux
+docker run -p 80:80 -e API_URL=http://172.17.0.1:3000 premium-calc-frontend:latest
+# (Replace 172.17.0.1 with your host machine's actual IP address)
 
 # With a different host port
-docker run -p 8080:80 -e API_URL=http://localhost:3000 premium-calc-frontend:latest
+docker run -p 8080:80 -e API_URL=http://host.docker.internal:3000 premium-calc-frontend:latest
 ```
+
+### Important Notes for Docker Deployment
+
+- **On macOS/Windows**: Use `host.docker.internal` to connect to services running on your host machine
+- **On Linux**: Use your host machine's actual IP address or configure Docker to add the `host.docker.internal` DNS name
+- **Port specification**: Make sure the port in API_URL matches the actual port your backend is running on
+- **Connection issues**: If you encounter connection refused errors, verify that:
+  1. Your backend API is running and accessible
+  2. You're using the correct hostname/IP and port
+  3. There are no firewall rules blocking the connection
 
 ### Environment Variables
 
 - `API_URL`: The URL of the backend API (used by Nginx at runtime)
-  - Example: `http://localhost:3000` or `http://api:3000` (when using Docker Compose)
+  - Example: `http://host.docker.internal:3000` (macOS/Windows)
+  - Example: `http://172.17.0.1:3000` (Linux)
+  - Example: `http://api:3000` (when using Docker Compose)
 
 ### Accessing the Application
 
@@ -95,6 +111,11 @@ When using Docker Compose with both frontend and backend services:
 ```yaml
 # Example docker-compose.yml snippet
 services:
+  api:
+    build: ./api
+    ports:
+      - "3000:3000"
+  
   frontend:
     build: ./frontend
     ports:

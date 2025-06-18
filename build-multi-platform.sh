@@ -4,7 +4,7 @@ set -e
 # Define image names and tags
 API_IMAGE="premium-calc-api"
 FRONTEND_IMAGE="premium-calc-frontend"
-TAG="0.4"
+TAG="latest"
 
 # Check if Docker BuildKit is enabled
 if [ -z "${DOCKER_BUILDKIT}" ]; then
@@ -20,20 +20,20 @@ fi
 # Use the builder
 docker buildx use multiplatform-builder
 
-# Build and push API image
+# Build API image (without pushing)
 echo "Building multi-platform API image..."
 cd api
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
   -t ${API_IMAGE}:${TAG} \
-  --push \
+  --load \
   .
 
-# Build and push Frontend image
+# Build Frontend image (without pushing)
 echo "Building multi-platform Frontend image..."
 cd ../frontend
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
   -t ${FRONTEND_IMAGE}:${TAG} \
-  --push \
+  --load \
   .
 
 echo "Multi-platform build completed successfully!"

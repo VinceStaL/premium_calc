@@ -16,7 +16,7 @@ COPY . .
 RUN mkdir -p data
 
 # Final image
-FROM --platform=$TARGETPLATFORM node:18-alpine
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 

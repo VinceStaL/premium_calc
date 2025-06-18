@@ -66,6 +66,25 @@ To run both the frontend and backend with a single command:
    - Backend API: http://localhost:3000
    - API Documentation: http://localhost:3000/api-docs
 
+### Multi-Platform Docker Builds
+
+The application supports multi-platform Docker builds for different CPU architectures:
+
+1. Make the build script executable:
+   ```
+   chmod +x build-multi-platform.sh
+   ```
+
+2. Run the build script to create multi-platform images:
+   ```
+   ./build-multi-platform.sh
+   ```
+
+3. This will build and push images for the following platforms:
+   - linux/amd64 (Intel/AMD 64-bit)
+   - linux/arm64 (ARM 64-bit)
+   - linux/arm/v7 (ARM 32-bit)
+
 ### Running Individual Containers
 
 #### Backend Container

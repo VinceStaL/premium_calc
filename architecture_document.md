@@ -280,22 +280,30 @@ graph TD
 The application is containerized using Docker for easier deployment and environment consistency:
 
 1. **Backend Container**
-   - Node.js Alpine-based image
+   - Multi-stage build with Node.js Alpine-based image
+   - Supports multiple CPU architectures (amd64, arm64, arm/v7)
    - Exposes port 3000
    - Mounts data directory as volume
    - Configurable via environment variables
 
 2. **Frontend Container**
    - Multi-stage build with Node.js for building and Nginx for serving
+   - Supports multiple CPU architectures (amd64, arm64, arm/v7)
    - Exposes port 80
    - Configurable API URL via environment variables
    - Nginx configured to proxy API requests
 
 3. **Docker Compose Setup**
    - Defines both services in a single compose file
+   - Specifies platform support for multi-architecture builds
    - Sets up networking between containers
    - Configures volume mounts for data persistence
    - Allows for easy deployment of the complete stack
+
+4. **Multi-Platform Support**
+   - Uses Docker BuildKit and buildx for cross-platform builds
+   - Supports x86_64/amd64, ARM64, and ARMv7 architectures
+   - Enables deployment on diverse hardware including cloud VMs, Raspberry Pi, and Apple Silicon
 
 ### Container Communication
 
@@ -344,6 +352,7 @@ The application is containerized using Docker for easier deployment and environm
 5. **Container Orchestration**
    - Deploy to Kubernetes for better scaling and management
    - Implement health checks and auto-healing
+   - Leverage Kubernetes' multi-architecture support for heterogeneous clusters
 
 ## Conclusion
 

@@ -4,7 +4,7 @@ set -e
 # Define image names and tags
 API_IMAGE="vinl/premium-calc-api"
 FRONTEND_IMAGE="vinl/premium-calc-frontend"
-TAG="0.4.2"
+TAG="v0.4"
 
 # Check if Docker BuildKit is enabled
 if [ -z "${DOCKER_BUILDKIT}" ]; then

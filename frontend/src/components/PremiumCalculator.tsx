@@ -184,6 +184,19 @@ const PremiumCalculator = () => {
                 required
               >
                 <option value="0">Standard (0)</option>
+                <option value="100">Rate 100</option>
+                <option value="101">Rate 101</option>
+                <option value="102">Rate 102</option>
+                <option value="103">Rate 103</option>
+                <option value="104">Rate 104</option>
+                <option value="105">Rate 105</option>
+                <option value="106">Rate 106</option>
+                <option value="107">Rate 107</option>
+                <option value="108">Rate 108</option>
+                <option value="109">Rate 109</option>
+                <option value="110">Rate 110</option>
+                <option value="111">Rate 111</option>
+                <option value="112">Rate 112</option>
               </select>
             </div>
             

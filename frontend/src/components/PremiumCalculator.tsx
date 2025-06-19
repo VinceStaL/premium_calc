@@ -25,7 +25,9 @@ const PremiumCalculator = () => {
     useBaseRate: true,
     useRiskRating: false,
     sex1: 'M',
-    age1: 30
+    age1: 30,
+    sex2: 'F',
+    age2: 32
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -317,7 +319,7 @@ const PremiumCalculator = () => {
                     </label>
                     <select
                       name="sex2"
-                      value={formData.sex2 || 'M'}
+                      value={formData.sex2}
                       onChange={handleChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
@@ -333,7 +335,7 @@ const PremiumCalculator = () => {
                     <input
                       type="number"
                       name="age2"
-                      value={formData.age2 || 30}
+                      value={formData.age2}
                       onChange={handleChange}
                       min="0"
                       max="120"

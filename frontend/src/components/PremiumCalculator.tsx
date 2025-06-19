@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-// Remove unused import
 import { PremiumParams, PremiumResult } from '../types/premium';
-import { Calculator } from 'lucide-react';
+import { Calculator, DollarSign, FileText, Settings } from 'lucide-react';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Checkbox } from './ui/checkbox';
 
 const PremiumCalculator = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<PremiumResult[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
-  // Debug effect to monitor state changes
-  useEffect(() => {
-    console.log('Results state updated:', results);
-  }, [results]);
   
   const [formData, setFormData] = useState<PremiumParams>({
     productCodes: ['H0A'],
@@ -30,27 +30,6 @@ const PremiumCalculator = () => {
     age2: 32
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (name === 'productCodes') {
-      setFormData({
-        ...formData,
-        productCodes: [value]
-      });
-      return;
-    }
-    
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' 
-        ? (e.target as HTMLInputElement).checked 
-        : type === 'number' 
-          ? parseFloat(value) 
-          : value
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -63,24 +42,15 @@ const PremiumCalculator = () => {
     setError(null);
     
     try {
-      console.log('Submitting form data:', formData);
-      
-      // Direct API call with fetch instead of using the service
       const response = await fetch('/api/calculate-premium', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       
-      if (!response.ok) {
-        throw new Error(`API responded with status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`API responded with status: ${response.status}`);
       
       const data = await response.json();
-      console.log('API response:', data);
-      
       if (data.results) {
         setResults(data.results);
       } else {
@@ -88,378 +58,315 @@ const PremiumCalculator = () => {
       }
     } catch (err: any) {
       setError(`Failed to calculate premium: ${err.message}`);
-      console.error('Error in handleSubmit:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  const totalPremium = results.reduce((sum, result) => sum + result.finalPremium, 0);
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex items-center mb-6">
-          <Calculator className="h-6 w-6 text-blue-600 mr-2" />
-          <h1 className="text-2xl font-bold text-gray-800">Premium Calculator</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="container mx-auto max-w-6xl">
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <Calculator className="h-8 w-8 text-primary mr-3" />
+            <h1 className="text-4xl font-bold text-gray-900">Premium Calculator</h1>
+          </div>
+          <p className="text-lg text-muted-foreground">Calculate health insurance premiums with precision</p>
         </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Codes (Select up to 3)
-              </label>
-              <div className="space-y-2">
-                {['H0A', 'HA0', 'AML', 'BML'].map((product) => (
-                  <div key={product} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={product}
-                      checked={formData.productCodes.includes(product)}
-                      onChange={(e) => {
-                        const isChecked = e.target.checked;
-                        let newProductCodes;
-                        
-                        if (isChecked) {
-                          if (formData.productCodes.length < 3) {
-                            newProductCodes = [...formData.productCodes, product];
-                          } else {
-                            return; // Don't allow more than 3
-                          }
-                        } else {
-                          newProductCodes = formData.productCodes.filter(code => code !== product);
-                        }
-                        
-                        setFormData({...formData, productCodes: newProductCodes});
-                      }}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      disabled={!formData.productCodes.includes(product) && formData.productCodes.length >= 3}
-                    />
-                    <label htmlFor={product} className="ml-2 text-sm text-gray-700">
-                      {product}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              {formData.productCodes.length === 0 && (
-                <p className="text-red-500 text-sm mt-1">Please select at least one product code</p>
-              )}
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Effective Date
-              </label>
-              <input
-                type="date"
-                name="effectiveDate"
-                value={formData.effectiveDate}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                State Code
-              </label>
-              <select
-                name="stateCode"
-                value={formData.stateCode}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="A">ACT (A)</option>
-                <option value="N">NSW (N)</option>
-                <option value="Q">QLD (Q)</option>
-                <option value="S">SA (S)</option>
-                <option value="T">TAS (T)</option>
-                <option value="V">VIC (V)</option>
-                <option value="W">WA (W)</option>
-                <option value="X">NT (X)</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Scale Code
-              </label>
-              <select
-                name="scaleCode"
-                value={formData.scaleCode}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="S">Single (S)</option>
-                <option value="D">Couple (D)</option>
-                <option value="F">Family (F)</option>
-                <option value="P">Single Parent (P)</option>
-                <option value="Q">Extended Family (Q)</option>
-                <option value="E">Extended (E)</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rate Code
-              </label>
-              <select
-                name="rateCode"
-                value={formData.rateCode}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="0">Standard (0)</option>
-                <option value="100">Rate 100</option>
-                <option value="101">Rate 101</option>
-                <option value="102">Rate 102</option>
-                <option value="103">Rate 103</option>
-                <option value="104">Rate 104</option>
-                <option value="105">Rate 105</option>
-                <option value="106">Rate 106</option>
-                <option value="107">Rate 107</option>
-                <option value="108">Rate 108</option>
-                <option value="109">Rate 109</option>
-                <option value="110">Rate 110</option>
-                <option value="111">Rate 111</option>
-                <option value="112">Rate 112</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Frequency
-              </label>
-              <select
-                name="paymentFrequency"
-                value={formData.paymentFrequency}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="weekly">Weekly</option>
-                <option value="fortnightly">Fortnightly</option>
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-                <option value="halfYearly">Half Yearly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rebate Type
-              </label>
-              <select
-                name="rebateType"
-                value={formData.rebateType}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="NONE">None</option>
-                <option value="RB">RB</option>
-                <option value="RF">RF</option>
-                <option value="RI">RI</option>
-                <option value="RL">RL</option>
-                <option value="RD">RD</option>
-                <option value="RG">RG</option>
-                <option value="RJ">RJ</option>
-                <option value="RM">RM</option>
-                <option value="RE">RE</option>
-                <option value="RH">RH</option>
-                <option value="RK">RK</option>
-                <option value="RN">RN</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                LHC Percentage
-              </label>
-              <input
-                type="number"
-                name="lhcPercentage"
-                value={formData.lhcPercentage}
-                onChange={handleChange}
-                min="0"
-                max="100"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          
-          <div className="flex flex-col space-y-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="useBaseRate"
-                checked={formData.useBaseRate}
-                onChange={(e) => setFormData({...formData, useBaseRate: e.target.checked})}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label className="ml-2 block text-sm text-gray-700">
-                Use Base Rate
-              </label>
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="useRiskRating"
-                checked={formData.useRiskRating}
-                onChange={(e) => setFormData({...formData, useRiskRating: e.target.checked})}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label className="ml-2 block text-sm text-gray-700">
-                Use Risk Rating
-              </label>
-            </div>
-          </div>
-          
-          {formData.useRiskRating && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-200 pt-4">
-              <h3 className="col-span-2 text-lg font-medium text-gray-800">Risk Rating Details</h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Person 1 Sex
-                </label>
-                <select
-                  name="sex1"
-                  value={formData.sex1}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Person 1 Age
-                </label>
-                <input
-                  type="number"
-                  name="age1"
-                  value={formData.age1}
-                  onChange={handleChange}
-                  min="0"
-                  max="120"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              {['D', 'F', 'Q', 'E'].includes(formData.scaleCode) && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Person 2 Sex
-                    </label>
-                    <select
-                      name="sex2"
-                      value={formData.sex2}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="M">Male</option>
-                      <option value="F">Female</option>
-                    </select>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  Calculation Parameters
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Product Codes (Select up to 3)</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['H0A', 'HA0', 'AML', 'BML'].map((product) => (
+                          <div key={product} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={product}
+                              checked={formData.productCodes.includes(product)}
+                              onCheckedChange={(checked) => {
+                                let newProductCodes;
+                                if (checked) {
+                                  if (formData.productCodes.length < 3) {
+                                    newProductCodes = [...formData.productCodes, product];
+                                  } else return;
+                                } else {
+                                  newProductCodes = formData.productCodes.filter(code => code !== product);
+                                }
+                                setFormData({...formData, productCodes: newProductCodes});
+                              }}
+                              disabled={!formData.productCodes.includes(product) && formData.productCodes.length >= 3}
+                            />
+                            <Label htmlFor={product} className="text-sm font-medium">{product}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="effectiveDate">Effective Date</Label>
+                      <Input
+                        id="effectiveDate"
+                        type="date"
+                        value={formData.effectiveDate}
+                        onChange={(e) => setFormData({...formData, effectiveDate: e.target.value})}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>State Code</Label>
+                      <Select value={formData.stateCode} onValueChange={(value) => setFormData({...formData, stateCode: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A">ACT (A)</SelectItem>
+                          <SelectItem value="N">NSW (N)</SelectItem>
+                          <SelectItem value="Q">QLD (Q)</SelectItem>
+                          <SelectItem value="S">SA (S)</SelectItem>
+                          <SelectItem value="T">TAS (T)</SelectItem>
+                          <SelectItem value="V">VIC (V)</SelectItem>
+                          <SelectItem value="W">WA (W)</SelectItem>
+                          <SelectItem value="X">NT (X)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Scale Code</Label>
+                      <Select value={formData.scaleCode} onValueChange={(value) => setFormData({...formData, scaleCode: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="S">Single (S)</SelectItem>
+                          <SelectItem value="D">Couple (D)</SelectItem>
+                          <SelectItem value="F">Family (F)</SelectItem>
+                          <SelectItem value="P">Single Parent (P)</SelectItem>
+                          <SelectItem value="Q">Extended Family (Q)</SelectItem>
+                          <SelectItem value="E">Extended (E)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Payment Frequency</Label>
+                      <Select value={formData.paymentFrequency} onValueChange={(value) => setFormData({...formData, paymentFrequency: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="halfYearly">Half Yearly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Rebate Type</Label>
+                      <Select value={formData.rebateType} onValueChange={(value) => setFormData({...formData, rebateType: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="NONE">None</SelectItem>
+                          <SelectItem value="RB">RB</SelectItem>
+                          <SelectItem value="RF">RF</SelectItem>
+                          <SelectItem value="RI">RI</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="lhc">LHC Percentage</Label>
+                      <Input
+                        id="lhc"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.lhcPercentage}
+                        onChange={(e) => setFormData({...formData, lhcPercentage: parseFloat(e.target.value) || 0})}
+                      />
+                    </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Person 2 Age
-                    </label>
-                    <input
-                      type="number"
-                      name="age2"
-                      value={formData.age2}
-                      onChange={handleChange}
-                      min="0"
-                      max="120"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                  <div className="flex flex-col space-y-4 p-4 bg-muted rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="useBaseRate"
+                        checked={formData.useBaseRate}
+                        onCheckedChange={(checked) => setFormData({...formData, useBaseRate: !!checked})}
+                      />
+                      <Label htmlFor="useBaseRate">Use Base Rate</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="useRiskRating"
+                        checked={formData.useRiskRating}
+                        onCheckedChange={(checked) => setFormData({...formData, useRiskRating: !!checked})}
+                      />
+                      <Label htmlFor="useRiskRating">Use Risk Rating</Label>
+                    </div>
                   </div>
-                </>
-              )}
-            </div>
-          )}
-          
-          <div className="flex justify-center">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-            >
-              {loading ? 'Calculating...' : 'Calculate Premium'}
-            </button>
+                  
+                  {formData.useRiskRating && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Risk Rating Details</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Person 1 Sex</Label>
+                            <Select value={formData.sex1} onValueChange={(value) => setFormData({...formData, sex1: value})}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="M">Male</SelectItem>
+                                <SelectItem value="F">Female</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="age1">Person 1 Age</Label>
+                            <Input
+                              id="age1"
+                              type="number"
+                              min="0"
+                              max="120"
+                              value={formData.age1}
+                              onChange={(e) => setFormData({...formData, age1: parseInt(e.target.value) || 0})}
+                            />
+                          </div>
+                          
+                          {['D', 'F', 'Q', 'E'].includes(formData.scaleCode) && (
+                            <>
+                              <div className="space-y-2">
+                                <Label>Person 2 Sex</Label>
+                                <Select value={formData.sex2} onValueChange={(value) => setFormData({...formData, sex2: value})}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="M">Male</SelectItem>
+                                    <SelectItem value="F">Female</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label htmlFor="age2">Person 2 Age</Label>
+                                <Input
+                                  id="age2"
+                                  type="number"
+                                  min="0"
+                                  max="120"
+                                  value={formData.age2}
+                                  onChange={(e) => setFormData({...formData, age2: parseInt(e.target.value) || 0})}
+                                />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  <div className="flex justify-center">
+                    <Button type="submit" disabled={loading} size="lg" className="px-8">
+                      {loading ? 'Calculating...' : 'Calculate Premium'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
-        </form>
-        
-        {error && (
-          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
-        
-        {results && results.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Results</h2>
-            
+
+          <div className="space-y-6">
+            {error && (
+              <Card className="border-destructive">
+                <CardContent className="pt-6">
+                  <p className="text-destructive">{error}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {results.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    Total Premium
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-primary">
+                    ${totalPremium.toFixed(2)}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {results.map((result, index) => (
-              <div key={index} className="bg-gray-50 p-4 rounded-md mb-4 border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Product: {result.productCode}
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                  <div>
-                    <span className="text-gray-600">Base Premium:</span>{' '}
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    {result.productCode}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Base Premium:</span>
                     <span className="font-medium">${result.basePremium.toFixed(2)}</span>
                   </div>
-                  
-                  <div>
-                    <span className="text-gray-600">Scaled Base Premium:</span>{' '}
-                    <span className="font-medium">${result.scaledBasePremium.toFixed(2)}</span>
-                  </div>
-                  
-                  <div>
-                    <span className="text-gray-600">Scale & Frequency Premium:</span>{' '}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Scale & Frequency:</span>
                     <span className="font-medium">${result.scaleAndFrequencyPremium.toFixed(2)}</span>
                   </div>
-                  
-                  <div>
-                    <span className="text-gray-600">Premium Before Rebate:</span>{' '}
-                    <span className="font-medium">${result.premiumBeforeRebate.toFixed(2)}</span>
-                  </div>
-                  
                   {result.rebateAmount > 0 && (
-                    <div>
-                      <span className="text-gray-600">Rebate Amount:</span>{' '}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Rebate:</span>
                       <span className="font-medium text-green-600">-${result.rebateAmount.toFixed(2)}</span>
                     </div>
                   )}
-                  
                   {result.lhcAmount > 0 && (
-                    <div>
-                      <span className="text-gray-600">LHC Amount:</span>{' '}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">LHC:</span>
                       <span className="font-medium">${result.lhcAmount.toFixed(2)}</span>
                     </div>
                   )}
-                  
-                  <div className="col-span-2 mt-2 pt-2 border-t border-gray-200">
-                    <span className="text-gray-800 font-semibold">Final Premium:</span>{' '}
-                    <span className="text-xl font-bold text-blue-600">${result.finalPremium.toFixed(2)}</span>
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold">Final Premium:</span>
+                      <span className="text-xl font-bold text-primary">${result.finalPremium.toFixed(2)}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

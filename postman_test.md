@@ -2,7 +2,7 @@
 
 This document contains Postman test scripts for testing the Premium Calculation API endpoints.
 
-## 1. Generate Sample Data (*do not run if there are existing datasets!*)
+## 1. Generate Sample Data (*DO NOT run if there are existing datasets!*)
 
 ### Request
 

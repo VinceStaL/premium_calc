@@ -76,8 +76,8 @@ const PremiumCalculator = () => {
           <p className="text-lg text-muted-foreground">Calculate health insurance premiums with precision</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className={`grid grid-cols-1 gap-6 ${results.length > 0 || error ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
+          <div className={`${results.length > 0 || error ? 'lg:col-span-2' : 'max-w-4xl mx-auto'}`}>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -336,8 +336,9 @@ const PremiumCalculator = () => {
             </Card>
           </div>
 
-          <div className="space-y-6">
-            {error && (
+          {(results.length > 0 || error) && (
+            <div className="space-y-6">
+              {error && (
               <Card className="border-destructive">
                 <CardContent className="pt-6">
                   <p className="text-destructive">{error}</p>
@@ -399,7 +400,8 @@ const PremiumCalculator = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

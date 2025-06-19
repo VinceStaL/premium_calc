@@ -163,6 +163,31 @@ const PremiumCalculator = () => {
                     </div>
                     
                     <div className="space-y-2">
+                      <Label>Rate Code</Label>
+                      <Select value={formData.rateCode} onValueChange={(value) => setFormData({...formData, rateCode: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">Standard (0)</SelectItem>
+                          <SelectItem value="100">Rate 100</SelectItem>
+                          <SelectItem value="101">Rate 101</SelectItem>
+                          <SelectItem value="102">Rate 102</SelectItem>
+                          <SelectItem value="103">Rate 103</SelectItem>
+                          <SelectItem value="104">Rate 104</SelectItem>
+                          <SelectItem value="105">Rate 105</SelectItem>
+                          <SelectItem value="106">Rate 106</SelectItem>
+                          <SelectItem value="107">Rate 107</SelectItem>
+                          <SelectItem value="108">Rate 108</SelectItem>
+                          <SelectItem value="109">Rate 109</SelectItem>
+                          <SelectItem value="110">Rate 110</SelectItem>
+                          <SelectItem value="111">Rate 111</SelectItem>
+                          <SelectItem value="112">Rate 112</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
                       <Label>Payment Frequency</Label>
                       <Select value={formData.paymentFrequency} onValueChange={(value) => setFormData({...formData, paymentFrequency: value})}>
                         <SelectTrigger>
@@ -190,6 +215,15 @@ const PremiumCalculator = () => {
                           <SelectItem value="RB">RB</SelectItem>
                           <SelectItem value="RF">RF</SelectItem>
                           <SelectItem value="RI">RI</SelectItem>
+                          <SelectItem value="RL">RL</SelectItem>
+                          <SelectItem value="RD">RD</SelectItem>
+                          <SelectItem value="RG">RG</SelectItem>
+                          <SelectItem value="RJ">RJ</SelectItem>
+                          <SelectItem value="RM">RM</SelectItem>
+                          <SelectItem value="RE">RE</SelectItem>
+                          <SelectItem value="RH">RH</SelectItem>
+                          <SelectItem value="RK">RK</SelectItem>
+                          <SelectItem value="RN">RN</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

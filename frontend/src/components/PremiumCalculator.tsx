@@ -53,6 +53,12 @@ const PremiumCalculator = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.productCodes.length === 0) {
+      setError('Please select at least one product code');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
@@ -100,20 +106,43 @@ const PremiumCalculator = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Code
+                Product Codes (Select up to 3)
               </label>
-              <select
-                name="productCodes"
-                value={formData.productCodes[0]}
-                onChange={(e) => setFormData({...formData, productCodes: [e.target.value]})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="H0A">H0A</option>
-                <option value="HA0">HA0</option>
-                <option value="AML">AML</option>
-                <option value="BML">BML</option>
-              </select>
+              <div className="space-y-2">
+                {['H0A', 'HA0', 'AML', 'BML'].map((product) => (
+                  <div key={product} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={product}
+                      checked={formData.productCodes.includes(product)}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        let newProductCodes;
+                        
+                        if (isChecked) {
+                          if (formData.productCodes.length < 3) {
+                            newProductCodes = [...formData.productCodes, product];
+                          } else {
+                            return; // Don't allow more than 3
+                          }
+                        } else {
+                          newProductCodes = formData.productCodes.filter(code => code !== product);
+                        }
+                        
+                        setFormData({...formData, productCodes: newProductCodes});
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      disabled={!formData.productCodes.includes(product) && formData.productCodes.length >= 3}
+                    />
+                    <label htmlFor={product} className="ml-2 text-sm text-gray-700">
+                      {product}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {formData.productCodes.length === 0 && (
+                <p className="text-red-500 text-sm mt-1">Please select at least one product code</p>
+              )}
             </div>
             
             <div>

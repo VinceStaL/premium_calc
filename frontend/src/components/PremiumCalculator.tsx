@@ -48,7 +48,11 @@ const PremiumCalculator = () => {
         body: JSON.stringify(formData),
       });
       
-      if (!response.ok) throw new Error(`API responded with status: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `API responded with status: ${response.status}`;
+        throw new Error(errorMessage);
+      }
       
       const data = await response.json();
       if (data.results) {

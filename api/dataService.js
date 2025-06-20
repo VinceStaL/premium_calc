@@ -52,7 +52,7 @@ function loadData() {
 function getProductRateMaster(productCode, stateCode, rateCode, effectiveDate) {
   console.log(`Looking for ProductRateMaster: ${productCode}, ${stateCode}, ${rateCode}, ${effectiveDate}`);
   
-  const result = dataStore.ProductRateMaster.find(row => 
+  const matches = dataStore.ProductRateMaster.filter(row => 
     row.ProductCode === productCode &&
     row.StateCode === stateCode &&
     parseInt(row.RateCode) === parseInt(rateCode) &&
@@ -60,20 +60,28 @@ function getProductRateMaster(productCode, stateCode, rateCode, effectiveDate) {
     new Date(row.DateOff) > new Date(effectiveDate)
   );
   
-  if (!result) {
+  if (matches.length === 0) {
     console.log('No matching product found. Checking all products with this code:');
-    const matches = dataStore.ProductRateMaster.filter(row => row.ProductCode === productCode);
-    console.log(`Found ${matches.length} products with code ${productCode}`);
-    if (matches.length > 0) {
-      console.log('First match:', matches[0]);
+    const allMatches = dataStore.ProductRateMaster.filter(row => row.ProductCode === productCode);
+    console.log(`Found ${allMatches.length} products with code ${productCode}`);
+    if (allMatches.length > 0) {
+      console.log('First match:', allMatches[0]);
     }
+    return null;
   }
   
-  return result;
+  if (matches.length > 1) {
+    console.log(`Warning: Found ${matches.length} matching entries for ${productCode}, ${stateCode}, ${rateCode}`);
+    console.log('Matches:', matches.map(m => ({ BaseRate: m.BaseRate, DateOn: m.DateOn, DateOff: m.DateOff })));
+    // For now, return the first match, but this needs business rule clarification
+    console.log('Using first match with BaseRate:', matches[0].BaseRate);
+  }
+  
+  return matches[0];
 }
 
 function getProductRateDetail(productCode, stateCode, scaleCode, rateCode, effectiveDate) {
-  return dataStore.ProductRateDetail.find(row => 
+  const matches = dataStore.ProductRateDetail.filter(row => 
     row.ProductCode === productCode &&
     row.StateCode === stateCode &&
     row.ScaleCode === scaleCode &&
@@ -81,21 +89,31 @@ function getProductRateDetail(productCode, stateCode, scaleCode, rateCode, effec
     new Date(row.DateOn) <= new Date(effectiveDate) &&
     new Date(row.DateOff) > new Date(effectiveDate)
   );
+  
+  if (matches.length > 1) {
+    console.log(`Warning: Found ${matches.length} matching ProductRateDetail entries`);
+  }
+  
+  return matches[0] || null;
 }
 
 function getScaleFactor(productCode, scaleCode, effectiveDate) {
-  const factor = dataStore.ScaleFactors.find(row => 
+  const matches = dataStore.ScaleFactors.filter(row => 
     row.ProductCode === productCode &&
     row.ScaleCode === scaleCode &&
     new Date(row.DateOn) <= new Date(effectiveDate) &&
     new Date(row.DateOff) > new Date(effectiveDate)
   );
   
-  return factor ? factor.ScaleFactor : null;
+  if (matches.length > 1) {
+    console.log(`Warning: Found ${matches.length} matching ScaleFactor entries`);
+  }
+  
+  return matches.length > 0 ? matches[0].ScaleFactor : null;
 }
 
 function getRiskLoading(productCode, sex, age, effectiveDate) {
-  const loading = dataStore.RiskLoading.find(row => 
+  const matches = dataStore.RiskLoading.filter(row => 
     row.ProductCode === productCode &&
     row.Sex === sex &&
     parseInt(row.Age) === parseInt(age) &&
@@ -103,19 +121,27 @@ function getRiskLoading(productCode, sex, age, effectiveDate) {
     new Date(row.DateOff) > new Date(effectiveDate)
   );
   
-  return loading ? loading.RiskLoading : null;
+  if (matches.length > 1) {
+    console.log(`Warning: Found ${matches.length} matching RiskLoading entries`);
+  }
+  
+  return matches.length > 0 ? matches[0].RiskLoading : null;
 }
 
 function getRebatePercentage(rebateType, effectiveDate) {
   if (!rebateType) return null;
   
-  const rebate = dataStore.RebatePercentage.find(row => 
+  const matches = dataStore.RebatePercentage.filter(row => 
     row.RebateType === rebateType &&
     new Date(row.DateOn) <= new Date(effectiveDate) &&
     new Date(row.DateOff) > new Date(effectiveDate)
   );
   
-  return rebate ? rebate.Rebate : null;
+  if (matches.length > 1) {
+    console.log(`Warning: Found ${matches.length} matching RebatePercentage entries`);
+  }
+  
+  return matches.length > 0 ? matches[0].Rebate : null;
 }
 
 module.exports = {

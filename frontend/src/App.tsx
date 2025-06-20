@@ -3,13 +3,7 @@ import PremiumCalculator from './components/PremiumCalculator';
 function App() {
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold">Premium Calculator</h1>
-        </div>
-      </header>
-      
-      <main className="py-8">
+      <main>
         <PremiumCalculator />
       </main>
       

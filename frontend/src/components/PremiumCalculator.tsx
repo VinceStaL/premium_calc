@@ -68,7 +68,19 @@ const PremiumCalculator = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="container mx-auto max-w-6xl">
-
+        <div className="mb-8 text-center">
+          <button 
+            onClick={() => {
+              setResults([]);
+              setError(null);
+            }}
+            className="flex items-center justify-center mb-4 mx-auto hover:opacity-80 transition-opacity"
+          >
+            <Calculator className="h-8 w-8 text-primary mr-3" />
+            <h1 className="text-4xl font-bold text-gray-900">Premium Calculator</h1>
+          </button>
+          <p className="text-lg text-muted-foreground">Calculate health insurance premiums with precision</p>
+        </div>
 
         <div className={`grid grid-cols-1 gap-6 ${results.length > 0 || error ? 'lg:grid-cols-3' : 'lg:grid-cols-5'}`}>
           <div className={`${results.length > 0 || error ? 'lg:col-span-2' : 'lg:col-start-2 lg:col-span-3'}`}>

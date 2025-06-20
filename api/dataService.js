@@ -11,6 +11,13 @@ const dataStore = {
   RebatePercentage: []
 };
 
+// Convert Excel serial date to JavaScript Date
+function excelSerialToDate(serial) {
+  if (typeof serial !== 'number') return null;
+  const excelEpoch = new Date(1899, 11, 30);
+  return new Date(excelEpoch.getTime() + serial * 24 * 60 * 60 * 1000);
+}
+
 // Load all XLSX files into memory
 function loadData() {
   const tables = Object.keys(dataStore);
@@ -28,10 +35,15 @@ function loadData() {
         // Convert to JSON
         const rows = XLSX.utils.sheet_to_json(worksheet);
         
-        // Convert numeric strings to numbers
+        // Convert numeric strings to numbers and handle date fields
         rows.forEach(row => {
           Object.keys(row).forEach(key => {
-            if (!isNaN(row[key]) && row[key] !== '') {
+            // Handle date fields (DateOn, DateOff)
+            if ((key === 'DateOn' || key === 'DateOff') && typeof row[key] === 'number') {
+              row[key] = excelSerialToDate(row[key]);
+            }
+            // Convert other numeric strings to numbers
+            else if (!isNaN(row[key]) && row[key] !== '' && typeof row[key] === 'string') {
               row[key] = parseFloat(row[key]);
             }
           });
@@ -56,8 +68,8 @@ function getProductRateMaster(productCode, stateCode, rateCode, effectiveDate) {
     row.ProductCode === productCode &&
     row.StateCode === stateCode &&
     parseInt(row.RateCode) === parseInt(rateCode) &&
-    new Date(row.DateOn) <= new Date(effectiveDate) &&
-    new Date(row.DateOff) > new Date(effectiveDate)
+    row.DateOn <= new Date(effectiveDate) &&
+    row.DateOff > new Date(effectiveDate)
   );
   
   if (matches.length === 0) {
@@ -86,8 +98,8 @@ function getProductRateDetail(productCode, stateCode, scaleCode, rateCode, effec
     row.StateCode === stateCode &&
     row.ScaleCode === scaleCode &&
     parseInt(row.RateCode) === parseInt(rateCode) &&
-    new Date(row.DateOn) <= new Date(effectiveDate) &&
-    new Date(row.DateOff) > new Date(effectiveDate)
+    row.DateOn <= new Date(effectiveDate) &&
+    row.DateOff > new Date(effectiveDate)
   );
   
   if (matches.length > 1) {
@@ -101,8 +113,8 @@ function getScaleFactor(productCode, scaleCode, effectiveDate) {
   const matches = dataStore.ScaleFactors.filter(row => 
     row.ProductCode === productCode &&
     row.ScaleCode === scaleCode &&
-    new Date(row.DateOn) <= new Date(effectiveDate) &&
-    new Date(row.DateOff) > new Date(effectiveDate)
+    row.DateOn <= new Date(effectiveDate) &&
+    row.DateOff > new Date(effectiveDate)
   );
   
   if (matches.length > 1) {
@@ -117,8 +129,8 @@ function getRiskLoading(productCode, sex, age, effectiveDate) {
     row.ProductCode === productCode &&
     row.Sex === sex &&
     parseInt(row.Age) === parseInt(age) &&
-    new Date(row.DateOn) <= new Date(effectiveDate) &&
-    new Date(row.DateOff) > new Date(effectiveDate)
+    row.DateOn <= new Date(effectiveDate) &&
+    row.DateOff > new Date(effectiveDate)
   );
   
   if (matches.length > 1) {
@@ -133,8 +145,8 @@ function getRebatePercentage(rebateType, effectiveDate) {
   
   const matches = dataStore.RebatePercentage.filter(row => 
     row.RebateType === rebateType &&
-    new Date(row.DateOn) <= new Date(effectiveDate) &&
-    new Date(row.DateOff) > new Date(effectiveDate)
+    row.DateOn <= new Date(effectiveDate) &&
+    row.DateOff > new Date(effectiveDate)
   );
   
   if (matches.length > 1) {
